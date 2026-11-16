@@ -205,12 +205,12 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {(method === 'EASYPAISA' || method === 'JAZZCASH') && (
-          <div className="rounded-2xl border border-[#E6DAC8] bg-[#FAF6F0] p-4 space-y-3">
+          <div className="rounded-2xl border border-[#E6DAC8] bg-[#FAF6F0] p-4 space-y-3 dark:border-[#C9A227]/25 dark:bg-[#16080D]">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-[#4A0B1E]">
+              <p className="text-sm font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
                 {method === 'EASYPAISA' ? 'Easypaisa Mobile Account Checkout' : 'JazzCash Mobile Account Checkout'}
               </p>
-              <span className="rounded-full bg-[#C9A227]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#785907]">
+              <span className="rounded-full bg-[#C9A227]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#785907] dark:text-[#E8D28A]">
                 {method === 'EASYPAISA'
                   ? config?.easypaisa.mode || 'SANDBOX'
                   : config?.jazzcash.mode || 'SANDBOX'}{' '}
@@ -219,7 +219,7 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+                <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                   Mobile Number (03XXXXXXXXX)
                 </label>
                 <input
@@ -227,12 +227,12 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="03001234567"
-                  className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none"
+                  className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+                <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                   MPIN / Sandbox OTP
                 </label>
                 <input
@@ -241,35 +241,35 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
                   value={mpin}
                   onChange={(e) => setMpin(e.target.value)}
                   placeholder="1234"
-                  className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none"
+                  className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                   required
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[#7B5A64]">
+            <p className="text-[11px] text-[#7B5A64] dark:text-[#D9C7CD]">
               When completed, Cashier POS immediately receives a green payment tick for Table {order.tableNumber}.
             </p>
           </div>
         )}
 
         {method === 'BANK_TRANSFER' && (
-          <div className="rounded-2xl border border-[#E6DAC8] bg-[#FAF6F0] p-4 space-y-3">
-            <p className="text-sm font-bold text-[#4A0B1E]">
+          <div className="rounded-2xl border border-[#E6DAC8] bg-[#FAF6F0] p-4 space-y-3 dark:border-[#C9A227]/25 dark:bg-[#16080D]">
+            <p className="text-sm font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
               Raast / Bank Transfer Details
             </p>
-            <div className="rounded-xl bg-white p-3 border border-[#E2D6C3] space-y-1.5 text-xs">
+            <div className="rounded-xl bg-white p-3 border border-[#E2D6C3] space-y-1.5 text-xs dark:border-[#C9A227]/25 dark:bg-[#240D15]">
               <div className="flex justify-between">
-                <span className="text-[#7B5A64]">Bank Name:</span>
-                <span className="font-bold text-[#4A0B1E]">{config?.raast.bankName || 'Meezan Bank'}</span>
+                <span className="text-[#7B5A64] dark:text-[#D9C7CD]">Bank Name:</span>
+                <span className="font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">{config?.raast.bankName || 'Meezan Bank'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#7B5A64]">Account Title:</span>
-                <span className="font-bold text-[#4A0B1E]">{config?.raast.accountTitle || 'Velvet Cafe & Grill'}</span>
+                <span className="text-[#7B5A64] dark:text-[#D9C7CD]">Account Title:</span>
+                <span className="font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">{config?.raast.accountTitle || 'Velvet Cafe & Grill'}</span>
               </div>
-              <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed border-[#E2D6C3]">
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed border-[#E2D6C3] dark:border-[#C9A227]/25">
                 <div>
-                  <span className="text-[#7B5A64] block">IBAN / Raast:</span>
-                  <span className="font-mono font-bold text-[#6B132E]">
+                  <span className="text-[#7B5A64] dark:text-[#D9C7CD] block">IBAN / Raast:</span>
+                  <span className="font-mono font-bold text-[#6B132E] dark:text-[#E8D28A]">
                     {config?.raast.iban || 'PK36MEZN0002140104829104'}
                   </span>
                 </div>
@@ -284,7 +284,7 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+              <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                 Enter Transaction Reference / TID
               </label>
               <input
@@ -292,7 +292,7 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
                 value={bankTid}
                 onChange={(e) => setBankTid(e.target.value)}
                 placeholder="e.g. RAAST-883412 or IBFT-9042"
-                className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none"
+                className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                 required
               />
             </div>
