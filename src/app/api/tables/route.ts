@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { readDB } from '@/lib/db';
+import { ensureSupabaseHydrated } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   const tablesWithOrders = db.tables.map((table) => {
     const activeOrder = table.activeOrderId
       ? db.orders.find((o) => o.id === table.activeOrderId) || null

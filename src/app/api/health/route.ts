@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { readDB } from '@/lib/db';
+import { ensureSupabaseHydrated } from '@/lib/db';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   return NextResponse.json({
     ok: true,
     brand: 'Velvet Cafe & Grill',

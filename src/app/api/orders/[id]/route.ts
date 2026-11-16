@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readDB, syncOrderToSupabase, updateOrderStatusInDB } from '@/lib/db';
+import { ensureSupabaseHydrated, syncOrderToSupabase, updateOrderStatusInDB } from '@/lib/db';
 import { emitRealtimeEvent } from '@/lib/socket-server';
 import type { OrderStatus } from '@/lib/types';
 
@@ -9,7 +9,7 @@ export async function GET(
   _request: Request,
   context: { params: { id: string } }
 ) {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   const order = db.orders.find((o) => o.id === context.params.id);
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -30,13 +30,14 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid order status' }, { status: 400 });
     }
 
+    await ensureSupabaseHydrated();
     const result = updateOrderStatusInDB(context.params.id, status);
     if (!result) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
     if (result.table) {
-      void syncOrderToSupabase(result.order, result.table);
+      await syncOrderToSupabase(result.order, result.table);
       emitRealtimeEvent('table:updated', result.table);
     }
     emitRealtimeEvent('order:updated', result.order);

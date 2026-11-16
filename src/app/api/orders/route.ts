@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   deductPackagingInventory,
+  ensureSupabaseHydrated,
   generateOrderNumber,
-  readDB,
   syncInventoryToSupabase,
   syncOrderToSupabase,
   writeDB,
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const tableParam = searchParams.get('table');
   const statusParam = searchParams.get('status');
 
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   let orders = [...db.orders];
 
   if (tableParam) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Order must contain at least one item' }, { status: 400 });
     }
 
-    const db = readDB();
+    const db = await ensureSupabaseHydrated();
     const orderItems: OrderItem[] = [];
     let subtotal = 0;
 
@@ -108,10 +108,10 @@ export async function POST(request: Request) {
     writeDB(db);
 
     if (table) {
-      void syncOrderToSupabase(newOrder, table);
+      await syncOrderToSupabase(newOrder, table);
     }
     if (touchedInventory.length > 0) {
-      void syncInventoryToSupabase(touchedInventory);
+      await syncInventoryToSupabase(touchedInventory);
       emitRealtimeEvent('inventory:updated', db.inventory);
     }
 

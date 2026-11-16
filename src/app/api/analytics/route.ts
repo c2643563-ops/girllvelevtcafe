@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { readDB } from '@/lib/db';
+import { ensureSupabaseHydrated } from '@/lib/db';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
 
   const validOrders = db.orders.filter((o) => o.status !== 'CANCELLED');
   const paidOrders = validOrders.filter((o) => o.paymentStatus === 'PAID');

@@ -24,6 +24,10 @@ const DB_FILE = path.join(DATA_DIR, 'velvet-db.json');
 declare global {
   // eslint-disable-next-line no-var
   var __velvetDBCache: VelvetDatabase | undefined;
+  // eslint-disable-next-line no-var
+  var __velvetHydrated: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __velvetHydratePromise: Promise<VelvetDatabase> | undefined;
 }
 
 function createSeedDatabase(): VelvetDatabase {
@@ -386,14 +390,198 @@ export function writeDB(db: VelvetDatabase): void {
 }
 
 // ============================================================================
-// OPTIONAL LIVE SUPABASE SYNC (runs seamlessly alongside local DB if configured)
+// OPTIONAL LIVE SUPABASE SYNC & HYDRATION (persistent across Railway deploys)
 // ============================================================================
+export async function ensureSupabaseHydrated(): Promise<VelvetDatabase> {
+  const db = readDB();
+  const sb = getSupabaseAdmin();
+  if (!sb || global.__velvetHydrated) {
+    return db;
+  }
+
+  if (!global.__velvetHydratePromise) {
+    global.__velvetHydratePromise = (async () => {
+      try {
+        const [tablesRes, ordersRes, itemsRes, paymentsRes, invRes, expRes] = await Promise.all([
+          sb.from('cafe_tables').select('*').order('table_number', { ascending: true }),
+          sb.from('orders').select('*').order('created_at', { ascending: false }),
+          sb.from('order_items').select('*'),
+          sb.from('payments').select('*').order('created_at', { ascending: false }),
+          sb.from('inventory_items').select('*'),
+          sb.from('expenses').select('*').order('created_at', { ascending: false }),
+        ]);
+
+        if (tablesRes.error) console.error('[Supabase Hydrate] cafe_tables error:', tablesRes.error);
+        if (ordersRes.error) console.error('[Supabase Hydrate] orders error:', ordersRes.error);
+        if (itemsRes.error) console.error('[Supabase Hydrate] order_items error:', itemsRes.error);
+        if (paymentsRes.error) console.error('[Supabase Hydrate] payments error:', paymentsRes.error);
+        if (invRes.error) console.error('[Supabase Hydrate] inventory_items error:', invRes.error);
+        if (expRes.error) console.error('[Supabase Hydrate] expenses error:', expRes.error);
+
+        const current = readDB();
+
+        if (tablesRes.data && tablesRes.data.length > 0) {
+          const tableMap = new Map<number, CafeTable>();
+          for (const t of current.tables) tableMap.set(t.tableNumber, t);
+          for (const row of tablesRes.data) {
+            const tNum = Number(row.table_number);
+            const existing = tableMap.get(tNum);
+            tableMap.set(tNum, {
+              tableNumber: tNum,
+              label: row.label || `Table ${tNum}`,
+              capacity: Number(row.capacity || existing?.capacity || 4),
+              status: (row.status as CafeTable['status']) || 'AVAILABLE',
+              activeOrderId: row.active_order_id || null,
+              lastPaymentMethod: (row.last_payment_method as PaymentMethod | null) || null,
+              lastPaidAt: existing?.lastPaidAt || null,
+              updatedAt: row.updated_at || new Date().toISOString(),
+            });
+          }
+          current.tables = Array.from(tableMap.values()).sort((a, b) => a.tableNumber - b.tableNumber);
+        } else if (!tablesRes.error) {
+          await sb.from('cafe_tables').upsert(
+            current.tables.map((t) => ({
+              table_number: t.tableNumber,
+              label: t.label,
+              capacity: t.capacity,
+              status: t.status,
+              active_order_id: t.activeOrderId,
+              last_payment_method: t.lastPaymentMethod,
+              updated_at: t.updatedAt,
+            }))
+          );
+        }
+
+        const menuPackMap = new Map(current.menuItems.map((m) => [m.id, m.packagingType || 'none']));
+        const itemsByOrderId = new Map<string, Order['items']>();
+        if (itemsRes.data) {
+          for (const r of itemsRes.data) {
+            const list = itemsByOrderId.get(r.order_id) || [];
+            list.push({
+              id: r.id,
+              menuItemId: r.menu_item_id,
+              name: r.name,
+              price: Number(r.price),
+              quantity: Number(r.quantity),
+              notes: r.notes || undefined,
+              packagingType: menuPackMap.get(r.menu_item_id) || 'none',
+            });
+            itemsByOrderId.set(r.order_id, list);
+          }
+        }
+
+        if (ordersRes.data && ordersRes.data.length > 0) {
+          current.orders = ordersRes.data.map((row) => ({
+            id: row.id,
+            orderNumber: row.order_number,
+            tableNumber: Number(row.table_number),
+            customerName: row.customer_name || `Table ${row.table_number} Guest`,
+            customerPhone: row.customer_phone || undefined,
+            orderType: (row.order_type as Order['orderType']) || 'DINE_IN',
+            status: (row.status as OrderStatus) || 'PENDING',
+            items: itemsByOrderId.get(row.id) || [],
+            subtotal: Number(row.subtotal),
+            tax: Number(row.tax || 0),
+            total: Number(row.total),
+            paymentStatus: (row.payment_status as PaymentStatus) || 'UNPAID',
+            paymentMethod: (row.payment_method as PaymentMethod | null) || null,
+            paymentReference: row.payment_reference || null,
+            notes: row.notes || undefined,
+            paidAt: row.paid_at || null,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at || row.created_at,
+          }));
+        }
+
+        const orderNumMap = new Map(current.orders.map((o) => [o.id, o.orderNumber]));
+        if (paymentsRes.data && paymentsRes.data.length > 0) {
+          current.payments = paymentsRes.data.map((row) => ({
+            id: row.id,
+            orderId: row.order_id,
+            orderNumber: orderNumMap.get(row.order_id) || row.order_id,
+            tableNumber: Number(row.table_number),
+            method: row.method as PaymentMethod,
+            amount: Number(row.amount),
+            referenceId: row.reference_id,
+            accountOrPhone: row.account_or_phone || undefined,
+            status: (row.status as PaymentRecord['status']) || 'COMPLETED',
+            gatewayMode: (row.gateway_mode as PaymentRecord['gatewayMode']) || 'SANDBOX',
+            createdAt: row.created_at,
+          }));
+        }
+
+        if (invRes.data && invRes.data.length > 0) {
+          current.inventory = invRes.data.map((row) => ({
+            id: row.id,
+            name: row.name,
+            category: row.category || 'Packaging',
+            quantity: Number(row.quantity),
+            unit: row.unit || 'pieces',
+            minThreshold: Number(row.min_threshold ?? 25),
+            updatedAt: row.updated_at || new Date().toISOString(),
+          }));
+        } else if (!invRes.error) {
+          await syncInventoryToSupabase(current.inventory);
+        }
+
+        if (expRes.data && expRes.data.length > 0) {
+          current.expenses = expRes.data.map((row) => ({
+            id: row.id,
+            title: row.title,
+            category: row.category || 'Operations',
+            amount: Number(row.amount),
+            notes: row.notes || undefined,
+            recordedBy: row.recorded_by || undefined,
+            createdAt: row.created_at,
+          }));
+        }
+
+        writeDB(current);
+        global.__velvetHydrated = true;
+        return current;
+      } catch (err) {
+        console.error('[Supabase Hydrate] Exception:', err);
+        return readDB();
+      } finally {
+        global.__velvetHydratePromise = undefined;
+      }
+    })();
+  }
+
+  return global.__velvetHydratePromise;
+}
+
+export async function syncTableToSupabase(table: CafeTable) {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+
+  try {
+    const { error } = await sb.from('cafe_tables').upsert(
+      {
+        table_number: table.tableNumber,
+        label: table.label,
+        capacity: table.capacity,
+        status: table.status,
+        active_order_id: table.activeOrderId,
+        last_payment_method: table.lastPaymentMethod,
+        updated_at: table.updatedAt,
+      },
+      { onConflict: 'table_number' }
+    );
+    if (error) {
+      console.error('[Supabase Sync] cafe_tables upsert error:', error);
+    }
+  } catch (err) {
+    console.error('[Supabase Sync] Table sync error:', err);
+  }
+}
+
 export async function syncOrderToSupabase(order: Order, table: CafeTable) {
   const sb = getSupabaseAdmin();
   if (!sb) return;
 
   try {
-    await sb.from('cafe_tables').upsert({
+    const { error: tableErr } = await sb.from('cafe_tables').upsert({
       table_number: table.tableNumber,
       label: table.label,
       capacity: table.capacity,
@@ -402,10 +590,13 @@ export async function syncOrderToSupabase(order: Order, table: CafeTable) {
       last_payment_method: table.lastPaymentMethod,
       updated_at: table.updatedAt,
     });
+    if (tableErr) {
+      console.error('[Supabase Sync] cafe_tables upsert error:', tableErr);
+    }
 
-    await sb.from('orders').upsert({
+    const buildOrderPayload = (orderNumber: string) => ({
       id: order.id,
-      order_number: order.orderNumber,
+      order_number: orderNumber,
       table_number: order.tableNumber,
       customer_name: order.customerName,
       customer_phone: order.customerPhone || null,
@@ -423,8 +614,33 @@ export async function syncOrderToSupabase(order: Order, table: CafeTable) {
       updated_at: order.updatedAt,
     });
 
+    let { error: orderErr } = await sb.from('orders').upsert(buildOrderPayload(order.orderNumber), {
+      onConflict: 'id',
+    });
+
+    // Guard against order_number unique collision across container restarts
+    if (orderErr && orderErr.code === '23505') {
+      const uniqueOrderNumber = `${order.orderNumber}-${Date.now().toString().slice(-4)}`;
+      order.orderNumber = uniqueOrderNumber;
+      const db = readDB();
+      const memOrder = db.orders.find((o) => o.id === order.id);
+      if (memOrder) {
+        memOrder.orderNumber = uniqueOrderNumber;
+        writeDB(db);
+      }
+      const retry = await sb.from('orders').upsert(buildOrderPayload(uniqueOrderNumber), {
+        onConflict: 'id',
+      });
+      orderErr = retry.error;
+    }
+
+    if (orderErr) {
+      console.error('[Supabase Sync] orders upsert error:', orderErr);
+      return;
+    }
+
     if (order.items.length > 0) {
-      await sb.from('order_items').upsert(
+      const { error: itemsErr } = await sb.from('order_items').upsert(
         order.items.map((item) => ({
           id: item.id,
           order_id: order.id,
@@ -433,8 +649,12 @@ export async function syncOrderToSupabase(order: Order, table: CafeTable) {
           price: item.price,
           quantity: item.quantity,
           notes: item.notes || null,
-        }))
+        })),
+        { onConflict: 'id' }
       );
+      if (itemsErr) {
+        console.error('[Supabase Sync] order_items upsert error:', itemsErr);
+      }
     }
   } catch (err) {
     console.error('[Supabase Sync] Order sync error:', err);
@@ -446,19 +666,25 @@ export async function syncPaymentToSupabase(payment: PaymentRecord, order: Order
   if (!sb) return;
 
   try {
-    await sb.from('payments').upsert({
-      id: payment.id,
-      order_id: payment.orderId,
-      table_number: payment.tableNumber,
-      method: payment.method,
-      amount: payment.amount,
-      reference_id: payment.referenceId,
-      account_or_phone: payment.accountOrPhone || null,
-      status: payment.status,
-      gateway_mode: payment.gatewayMode,
-      created_at: payment.createdAt,
-    });
     await syncOrderToSupabase(order, table);
+    const { error: payErr } = await sb.from('payments').upsert(
+      {
+        id: payment.id,
+        order_id: payment.orderId,
+        table_number: payment.tableNumber,
+        method: payment.method,
+        amount: payment.amount,
+        reference_id: payment.referenceId,
+        account_or_phone: payment.accountOrPhone || null,
+        status: payment.status,
+        gateway_mode: payment.gatewayMode,
+        created_at: payment.createdAt,
+      },
+      { onConflict: 'id' }
+    );
+    if (payErr) {
+      console.error('[Supabase Sync] payments upsert error:', payErr);
+    }
   } catch (err) {
     console.error('[Supabase Sync] Payment sync error:', err);
   }
@@ -469,7 +695,7 @@ export async function syncInventoryToSupabase(items: InventoryItem[]) {
   if (!sb) return;
 
   try {
-    await sb.from('inventory_items').upsert(
+    const { error } = await sb.from('inventory_items').upsert(
       items.map((i) => ({
         id: i.id,
         name: i.name,
@@ -478,10 +704,39 @@ export async function syncInventoryToSupabase(items: InventoryItem[]) {
         unit: i.unit,
         min_threshold: i.minThreshold,
         updated_at: i.updatedAt,
-      }))
+      })),
+      { onConflict: 'id' }
     );
+    if (error) {
+      console.error('[Supabase Sync] inventory_items upsert error:', error);
+    }
   } catch (err) {
     console.error('[Supabase Sync] Inventory sync error:', err);
+  }
+}
+
+export async function syncExpenseToSupabase(expense: ExpenseRecord) {
+  const sb = getSupabaseAdmin();
+  if (!sb) return;
+
+  try {
+    const { error } = await sb.from('expenses').upsert(
+      {
+        id: expense.id,
+        title: expense.title,
+        category: expense.category,
+        amount: expense.amount,
+        notes: expense.notes || null,
+        recorded_by: expense.recordedBy || null,
+        created_at: expense.createdAt,
+      },
+      { onConflict: 'id' }
+    );
+    if (error) {
+      console.error('[Supabase Sync] expenses upsert error:', error);
+    }
+  } catch (err) {
+    console.error('[Supabase Sync] Expense sync error:', err);
   }
 }
 
@@ -490,8 +745,17 @@ export async function syncInventoryToSupabase(items: InventoryItem[]) {
 // ============================================================================
 
 export function generateOrderNumber(db: VelvetDatabase): string {
-  const count = db.orders.length + 101;
-  return `VCG-${count}`;
+  let maxNum = 100;
+  for (const ord of db.orders) {
+    const match = /^VCG-(\d+)/i.exec(ord.orderNumber || '');
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (!Number.isNaN(n) && n > maxNum) {
+        maxNum = n;
+      }
+    }
+  }
+  return `VCG-${maxNum + 1}`;
 }
 
 export function deductPackagingInventory(

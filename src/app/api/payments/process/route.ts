@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { completeOrderPaymentInDB, readDB, syncPaymentToSupabase } from '@/lib/db';
+import { completeOrderPaymentInDB, ensureSupabaseHydrated, syncPaymentToSupabase } from '@/lib/db';
 import { emitRealtimeEvent } from '@/lib/socket-server';
 import type { PaymentMethod, PaymentStatus } from '@/lib/types';
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Valid orderId and payment method are required' }, { status: 400 });
     }
 
-    const db = readDB();
+    const db = await ensureSupabaseHydrated();
     const existing = db.orders.find((o) => o.id === orderId);
     if (!existing) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     if (result.table) {
-      void syncPaymentToSupabase(result.payment, result.order, result.table);
+      await syncPaymentToSupabase(result.payment, result.order, result.table);
       emitRealtimeEvent('table:updated', result.table);
     }
 

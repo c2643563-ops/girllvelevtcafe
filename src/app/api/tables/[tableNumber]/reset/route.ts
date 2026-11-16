@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { resetTableInDB, readDB, syncOrderToSupabase } from '@/lib/db';
+import { ensureSupabaseHydrated, resetTableInDB, syncOrderToSupabase, syncTableToSupabase } from '@/lib/db';
 import { requireStaffRole } from '@/lib/auth';
 import { emitRealtimeEvent } from '@/lib/socket-server';
 
@@ -17,15 +17,17 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid table number (1-15)' }, { status: 400 });
   }
 
+  const db = await ensureSupabaseHydrated();
   const table = resetTableInDB(num);
   if (!table) {
     return NextResponse.json({ error: 'Table not found' }, { status: 404 });
   }
 
-  const db = readDB();
   const lastOrder = db.orders.find((o) => o.tableNumber === num);
   if (lastOrder) {
-    void syncOrderToSupabase(lastOrder, table);
+    await syncOrderToSupabase(lastOrder, table);
+  } else {
+    await syncTableToSupabase(table);
   }
 
   emitRealtimeEvent('table:updated', table);

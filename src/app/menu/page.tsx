@@ -446,7 +446,7 @@ function MenuContent() {
                       </div>
 
                       <div>
-                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                           Your Name (optional)
                         </label>
                         <input
@@ -454,12 +454,12 @@ function MenuContent() {
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           placeholder={`Table ${tableNumber} Guest`}
-                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm focus:border-[#6B132E] focus:outline-none"
+                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                         />
                       </div>
 
                       <div>
-                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                           Phone (optional)
                         </label>
                         <input
@@ -467,12 +467,12 @@ function MenuContent() {
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
                           placeholder="0300-1234567"
-                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm focus:border-[#6B132E] focus:outline-none"
+                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                         />
                       </div>
 
                       <div>
-                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45]">
+                        <label className="mb-1 block text-xs font-semibold text-[#5C3A45] dark:text-[#E8D28A]">
                           Kitchen Special Instructions
                         </label>
                         <textarea
@@ -480,7 +480,7 @@ function MenuContent() {
                           value={orderNotes}
                           onChange={(e) => setOrderNotes(e.target.value)}
                           placeholder="e.g., Medium-well steak, extra garlic sauce..."
-                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm focus:border-[#6B132E] focus:outline-none"
+                          className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3 py-2 text-sm text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/35 dark:bg-[#240D15] dark:text-[#FAF6F0]"
                         />
                       </div>
                     </div>

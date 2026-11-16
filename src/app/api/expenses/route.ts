@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { readDB, writeDB } from '@/lib/db';
+import { ensureSupabaseHydrated, syncExpenseToSupabase, writeDB } from '@/lib/db';
 import { requireStaffRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   return NextResponse.json({ expenses: db.expenses });
 }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Valid expense title and amount required' }, { status: 400 });
   }
 
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   const expense = {
     id: `exp-${Date.now()}`,
     title,
@@ -35,5 +35,6 @@ export async function POST(request: Request) {
 
   db.expenses.unshift(expense);
   writeDB(db);
+  await syncExpenseToSupabase(expense);
   return NextResponse.json({ expense }, { status: 201 });
 }

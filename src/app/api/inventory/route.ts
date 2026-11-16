@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { readDB, syncInventoryToSupabase, writeDB } from '@/lib/db';
+import { ensureSupabaseHydrated, syncInventoryToSupabase, writeDB } from '@/lib/db';
 import { requireStaffRole } from '@/lib/auth';
 import { emitRealtimeEvent } from '@/lib/socket-server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   const lowStock = db.inventory.filter((i) => i.quantity <= i.minThreshold);
   return NextResponse.json({
     items: db.inventory,
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Item name is required' }, { status: 400 });
   }
 
-  const db = readDB();
+  const db = await ensureSupabaseHydrated();
   const newItem = {
     id: `inv-${Date.now()}`,
     name,
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
   db.inventory.push(newItem);
   writeDB(db);
-  void syncInventoryToSupabase([newItem]);
+  await syncInventoryToSupabase([newItem]);
   emitRealtimeEvent('inventory:updated', db.inventory);
 
   return NextResponse.json({ item: newItem }, { status: 201 });
