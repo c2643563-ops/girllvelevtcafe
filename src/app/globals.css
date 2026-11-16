@@ -46,11 +46,24 @@ h1, h2, h3, .font-serif-luxury {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
 }
 
-/* Luxury Dark Mode adaptive overrides for clean contrast across all cards */
+/* Luxury Dark Mode adaptive overrides for clean contrast across all cards & inputs */
 html.dark .velvet-surface {
   background-color: #1B0A10 !important;
   border-color: rgba(201, 162, 39, 0.25) !important;
   color: #FAF6F0 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  background-color: #240D15;
+  color: #FAF6F0;
+  border-color: rgba(201, 162, 39, 0.35);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #A88D96;
 }
 
 /* Custom luxury scrollbar */
