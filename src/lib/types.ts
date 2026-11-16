@@ -35,6 +35,7 @@ export interface MenuItem {
   prepMinutes: number;
   isAvailable: boolean;
   packagingType: PackagingType;
+  imageUrl?: string;
   accentColor?: string;
 }
 

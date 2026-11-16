@@ -127,20 +127,20 @@ export function PaymentGatewayPanel({ order, onPaymentComplete }: PaymentGateway
   }
 
   return (
-    <div className="rounded-3xl border border-[#C9A227]/40 bg-[#FFFDF9] p-6 shadow-xl">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#E9DFD0] pb-4">
+    <div className="rounded-3xl border border-[#C9A227]/40 bg-[#FFFDF9] p-6 shadow-xl dark:border-[#C9A227]/30 dark:bg-[#1B0A10]">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#E9DFD0] pb-4 dark:border-[#C9A227]/20">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#6B132E]/10 px-3 py-1 text-xs font-semibold text-[#6B132E]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#6B132E]/10 px-3 py-1 text-xs font-semibold text-[#6B132E] dark:bg-[#6B132E]/40 dark:text-[#E8D28A]">
             <ShieldCheck className="h-3.5 w-3.5" />
             Velvet Pay • Pakistani Payment Gateway
           </span>
-          <h2 className="mt-2 font-serif text-2xl font-bold text-[#4A0B1E]">
+          <h2 className="mt-2 font-serif text-2xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
             Complete Payment for Table {order.tableNumber}
           </h2>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-wider text-[#7B5A64]">Payable Amount</p>
-          <p className="font-serif text-2xl font-bold text-[#6B132E]">{formatPKR(order.total)}</p>
+          <p className="text-xs uppercase tracking-wider text-[#7B5A64] dark:text-[#D9C7CD]">Payable Amount</p>
+          <p className="font-serif text-2xl font-bold text-[#6B132E] dark:text-[#E8D28A]">{formatPKR(order.total)}</p>
         </div>
       </div>
 

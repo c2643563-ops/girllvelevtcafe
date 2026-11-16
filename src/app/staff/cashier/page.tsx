@@ -102,7 +102,15 @@ export default function CashierPOSPage() {
     socket.on('payment:completed', onPaymentCompleted);
     socket.on('table:updated', onTableUpdated);
 
+    // Fallback polling for serverless hosts (e.g. Vercel) where WebSockets aren't running
+    const poll = setInterval(() => {
+      if (!socket.connected) {
+        void loadData();
+      }
+    }, 3000);
+
     return () => {
+      clearInterval(poll);
       socket.off('order:created', onOrderCreated);
       socket.off('order:updated', onOrderUpdated);
       socket.off('payment:completed', onPaymentCompleted);
@@ -219,7 +227,7 @@ export default function CashierPOSPage() {
 
       {/* 15-Table Live Grid */}
       <section className="mb-8">
-        <h2 className="mb-3 font-serif text-lg font-bold text-[#4A0B1E]">
+        <h2 className="mb-3 font-serif text-lg font-bold text-[#4A0B1E] dark:text-[#E8D28A]">
           15-Table Live Floor Status
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -320,12 +328,12 @@ export default function CashierPOSPage() {
       </section>
 
       {/* Live Orders Ledger */}
-      <section className="rounded-3xl border border-[#E3D7C5] bg-[#FFFDF9] p-5 shadow-sm">
+      <section className="rounded-3xl border border-[#E3D7C5] bg-[#FFFDF9] p-5 shadow-sm dark:border-[#C9A227]/25 dark:bg-[#1B0A10]">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-serif text-lg font-bold text-[#4A0B1E]">
+          <h2 className="font-serif text-lg font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
             Live Orders &amp; Payment Verification
           </h2>
-          <span className="text-xs text-[#73545E]">{orders.length} total orders</span>
+          <span className="text-xs text-[#73545E] dark:text-[#D9C7CD]">{orders.length} total orders</span>
         </div>
 
         {orders.length === 0 ? (

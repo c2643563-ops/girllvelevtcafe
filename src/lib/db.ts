@@ -16,7 +16,9 @@ import type {
   VelvetDatabase,
 } from './types';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'velvet-cafe-grill-data')
+  : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'velvet-db.json');
 
 declare global {
@@ -83,6 +85,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 22,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-1.jpg',
     },
     {
       id: 'menu-2',
@@ -94,6 +97,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 20,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-2.jpg',
     },
     {
       id: 'menu-3',
@@ -105,6 +109,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 18,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-3.jpg',
     },
     // Artisan Burgers
     {
@@ -117,6 +122,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 14,
       isAvailable: true,
       packagingType: 'burger',
+      imageUrl: '/menu/menu-4.jpg',
     },
     {
       id: 'menu-5',
@@ -128,6 +134,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 14,
       isAvailable: true,
       packagingType: 'burger',
+      imageUrl: '/menu/menu-5.jpg',
     },
     {
       id: 'menu-6',
@@ -139,6 +146,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 15,
       isAvailable: true,
       packagingType: 'burger',
+      imageUrl: '/menu/menu-6.jpg',
     },
     // Pasta & Mains
     {
@@ -151,6 +159,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 16,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-7.jpg',
     },
     {
       id: 'menu-8',
@@ -162,6 +171,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 17,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-8.jpg',
     },
     // Crispy Sides & Starters
     {
@@ -174,6 +184,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 10,
       isAvailable: true,
       packagingType: 'fries',
+      imageUrl: '/menu/menu-9.jpg',
     },
     {
       id: 'menu-10',
@@ -185,6 +196,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 12,
       isAvailable: true,
       packagingType: 'fries',
+      imageUrl: '/menu/menu-10.jpg',
     },
     {
       id: 'menu-11',
@@ -195,6 +207,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 8,
       isAvailable: true,
       packagingType: 'fries',
+      imageUrl: '/menu/menu-11.jpg',
     },
     // Cold Drinks & Shakes
     {
@@ -207,6 +220,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 6,
       isAvailable: true,
       packagingType: 'drink',
+      imageUrl: '/menu/menu-12.jpg',
     },
     {
       id: 'menu-13',
@@ -218,6 +232,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 5,
       isAvailable: true,
       packagingType: 'drink',
+      imageUrl: '/menu/menu-13.jpg',
     },
     {
       id: 'menu-14',
@@ -228,6 +243,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 5,
       isAvailable: true,
       packagingType: 'drink',
+      imageUrl: '/menu/menu-14.jpg',
     },
     {
       id: 'menu-15',
@@ -238,6 +254,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 5,
       isAvailable: true,
       packagingType: 'drink',
+      imageUrl: '/menu/menu-15.jpg',
     },
     // Artisan Desserts & Hot Bar
     {
@@ -250,6 +267,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 12,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-16.jpg',
     },
     {
       id: 'menu-17',
@@ -261,6 +279,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 6,
       isAvailable: true,
       packagingType: 'none',
+      imageUrl: '/menu/menu-17.jpg',
     },
     {
       id: 'menu-18',
@@ -272,6 +291,7 @@ function createSeedDatabase(): VelvetDatabase {
       prepMinutes: 8,
       isAvailable: true,
       packagingType: 'drink',
+      imageUrl: '/menu/menu-18.jpg',
     },
   ];
 
@@ -334,6 +354,19 @@ export function readDB(): VelvetDatabase {
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf8');
     const parsed = JSON.parse(raw) as VelvetDatabase;
+    // Ensure menu items always have their imageUrl even on existing DB files
+    if (Array.isArray(parsed.menuItems)) {
+      let changed = false;
+      for (const item of parsed.menuItems) {
+        if (!item.imageUrl && item.id.startsWith('menu-')) {
+          item.imageUrl = `/menu/${item.id}.jpg`;
+          changed = true;
+        }
+      }
+      if (changed) {
+        fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf8');
+      }
+    }
     global.__velvetDBCache = parsed;
     return parsed;
   } catch {

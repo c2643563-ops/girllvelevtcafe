@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { getSocket } from '@/lib/socket-client';
 import type { StaffRole } from '@/lib/types';
+import { ThemeToggle } from './ThemeToggle';
 
 interface StaffUserInfo {
   userId: string;
@@ -221,7 +222,7 @@ export function StaffShell({ children, title, subtitle, allowedRoles }: StaffShe
   );
 
   return (
-    <div className="flex min-h-screen bg-[#FAF6F0]">
+    <div className="flex min-h-screen bg-[#FAF6F0] dark:bg-[#12060A] transition-colors">
       {/* Desktop Dark Sidebar */}
       <aside className="no-print hidden w-64 shrink-0 lg:block">{sidebarContent}</aside>
 
@@ -238,32 +239,32 @@ export function StaffShell({ children, title, subtitle, allowedRoles }: StaffShe
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col min-w-0">
-        <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b border-[#E5DAC8] bg-[#FFFDF9]/95 px-4 py-3.5 backdrop-blur sm:px-6">
+        <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b border-[#E5DAC8] bg-[#FFFDF9]/95 px-4 py-3.5 backdrop-blur dark:border-[#C9A227]/20 dark:bg-[#16080D]/95 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              className="rounded-xl border border-[#D8CCBA] p-2 text-[#4A0B1E] lg:hidden"
+              className="rounded-xl border border-[#D8CCBA] p-2 text-[#4A0B1E] dark:border-[#C9A227]/30 dark:text-[#E8D28A] lg:hidden"
               aria-label="Toggle Menu"
             >
               {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             <div>
-              <h1 className="font-serif text-xl font-bold text-[#4A0B1E] sm:text-2xl">{title}</h1>
-              {subtitle && <p className="text-xs text-[#73545E]">{subtitle}</p>}
+              <h1 className="font-serif text-xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9] sm:text-2xl">{title}</h1>
+              {subtitle && <p className="text-xs text-[#73545E] dark:text-[#D6C5CA]">{subtitle}</p>}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#D8CCBA] bg-[#FAF6F0] px-3 py-1.5 text-xs font-semibold text-[#4A0B1E] hover:border-[#6B132E] transition"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#D8CCBA] bg-[#FAF6F0] px-3 py-1.5 text-xs font-semibold text-[#4A0B1E] hover:border-[#6B132E] dark:border-[#C9A227]/30 dark:bg-[#240D15] dark:text-[#E8D28A] transition"
             >
               Launcher Home
             </Link>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                 connected
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/50'
                   : 'bg-amber-100 text-amber-800 border border-amber-200'
               }`}
             >
@@ -274,6 +275,7 @@ export function StaffShell({ children, title, subtitle, allowedRoles }: StaffShe
               />
               {connected ? 'Live Sync' : 'Syncing'}
             </span>
+            <ThemeToggle compact />
           </div>
         </header>
 

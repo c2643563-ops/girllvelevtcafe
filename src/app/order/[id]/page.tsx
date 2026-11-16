@@ -17,6 +17,7 @@ import { getSocket } from '@/lib/socket-client';
 import { formatPKR } from '@/lib/format';
 import { PaymentGatewayPanel } from '@/components/PaymentGatewayPanel';
 import { ThermalReceiptModal } from '@/components/ThermalReceiptModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const STEPS = [
   { key: 'PENDING', label: 'Order Placed', desc: 'Received at Kitchen & Cashier' },
@@ -50,7 +51,20 @@ export default function OrderTrackerPage() {
     };
 
     socket.on('order:updated', handleUpdate);
+
+    const poll = setInterval(() => {
+      if (!socket.connected) {
+        fetch(`/api/orders/${orderId}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (d?.order) setOrder(d.order);
+          })
+          .catch(() => {});
+      }
+    }, 3000);
+
     return () => {
+      clearInterval(poll);
       socket.off('order:updated', handleUpdate);
     };
   }, [orderId]);
@@ -91,29 +105,32 @@ export default function OrderTrackerPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] pb-16 text-[#2A0914]">
-      <header className="border-b border-[#C9A227]/30 bg-[#FFFDF9]">
+    <div className="min-h-screen bg-[#FAF6F0] pb-16 text-[#2A0914] dark:bg-[#12060A] dark:text-[#FAF6F0] transition-colors">
+      <header className="border-b border-[#C9A227]/30 bg-[#FFFDF9] dark:bg-[#16080D] dark:border-[#C9A227]/20">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3.5">
           <Link
             href={`/menu?table=${order.tableNumber}`}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B132E] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B132E] dark:text-[#E8D28A] hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Table {order.tableNumber} Menu
           </Link>
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#C9A227]" />
-            <span className="font-serif text-base font-bold text-[#4A0B1E]">
+            <span className="font-serif text-base font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
               Velvet Cafe &amp; Grill
             </span>
           </div>
-          <button
-            onClick={() => setShowReceipt(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#D8CCBA] bg-[#FAF6F0] px-3 py-1.5 text-xs font-bold text-[#4A0B1E]"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            Receipt
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowReceipt(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#D8CCBA] bg-[#FAF6F0] px-3 py-1.5 text-xs font-bold text-[#4A0B1E] dark:border-[#C9A227]/40 dark:bg-[#240D15] dark:text-[#E8D28A]"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Receipt
+            </button>
+            <ThemeToggle compact />
+          </div>
         </div>
       </header>
 
@@ -190,25 +207,25 @@ export default function OrderTrackerPage() {
         />
 
         {/* Order Summary */}
-        <div className="rounded-3xl border border-[#E3D7C5] bg-[#FFFDF9] p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between border-b border-[#EFE5D5] pb-3">
-            <h3 className="flex items-center gap-2 font-serif text-xl font-bold text-[#4A0B1E]">
-              <ChefHat className="h-5 w-5 text-[#6B132E]" />
+        <div className="rounded-3xl border border-[#E3D7C5] bg-[#FFFDF9] p-6 shadow-sm dark:border-[#C9A227]/25 dark:bg-[#1B0A10]">
+          <div className="mb-4 flex items-center justify-between border-b border-[#EFE5D5] pb-3 dark:border-[#C9A227]/20">
+            <h3 className="flex items-center gap-2 font-serif text-xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
+              <ChefHat className="h-5 w-5 text-[#6B132E] dark:text-[#E8D28A]" />
               Order Items ({order.items.length})
             </h3>
-            <span className="text-xs text-[#73545E]">
+            <span className="text-xs text-[#73545E] dark:text-[#D9C7CD]">
               {new Date(order.createdAt).toLocaleTimeString('en-PK')}
             </span>
           </div>
 
-          <div className="divide-y divide-[#F2E9DB]">
+          <div className="divide-y divide-[#F2E9DB] dark:divide-[#C9A227]/15">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between py-3 text-sm">
                 <div>
-                  <span className="font-bold text-[#6B132E]">{item.quantity}x </span>
-                  <span className="font-semibold text-[#2A0914]">{item.name}</span>
+                  <span className="font-bold text-[#6B132E] dark:text-[#E8D28A]">{item.quantity}x </span>
+                  <span className="font-semibold text-[#2A0914] dark:text-[#FAF6F0]">{item.name}</span>
                 </div>
-                <span className="font-bold text-[#4A0B1E]">
+                <span className="font-bold text-[#4A0B1E] dark:text-[#E8D28A]">
                   {formatPKR(item.price * item.quantity)}
                 </span>
               </div>
@@ -216,7 +233,7 @@ export default function OrderTrackerPage() {
           </div>
 
           {order.notes && (
-            <div className="mt-3 rounded-xl bg-[#FAF6F0] p-3 text-xs text-[#6B4A54]">
+            <div className="mt-3 rounded-xl bg-[#FAF6F0] p-3 text-xs text-[#6B4A54] dark:bg-[#240D15] dark:text-[#D9C7CD]">
               <strong>Notes:</strong> {order.notes}
             </div>
           )}

@@ -25,7 +25,13 @@ export default function KitchenDashboardPage() {
     const refresh = () => void loadOrders();
     socket.on('order:created', refresh);
     socket.on('order:updated', refresh);
+
+    const poll = setInterval(() => {
+      if (!socket.connected) void loadOrders();
+    }, 3000);
+
     return () => {
+      clearInterval(poll);
       socket.off('order:created', refresh);
       socket.off('order:updated', refresh);
     };

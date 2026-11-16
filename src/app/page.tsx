@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   ChefHat,
   CreditCard,
@@ -32,25 +33,25 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] text-[#2A0914]">
+    <div className="min-h-screen bg-[#FAF6F0] text-[#2A0914] dark:bg-[#12060A] dark:text-[#FAF6F0] transition-colors">
       {/* Luxury Top Bar */}
-      <header className="sticky top-0 z-30 border-b border-[#C9A227]/25 bg-[#FFFDF9]/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-[#C9A227]/25 bg-[#FFFDF9]/90 backdrop-blur dark:bg-[#16080D]/90 dark:border-[#C9A227]/20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6B132E] text-[#E8D28A] shadow-md border border-[#C9A227]/50">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <span className="font-serif text-xl font-bold tracking-tight text-[#4A0B1E]">
+              <span className="font-serif text-xl font-bold tracking-tight text-[#4A0B1E] dark:text-[#FFFDF9]">
                 Velvet Cafe &amp; Grill
               </span>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-[#9A7418]">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-[#9A7418] dark:text-[#C9A227]">
                 Artisan Charcoal &amp; Espresso
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               href={`/menu?table=${selectedTable}`}
               className="rounded-xl bg-[#6B132E] px-4 py-2 text-xs font-bold text-[#FFFDF9] shadow hover:bg-[#4A0B1E] transition sm:text-sm"
@@ -59,10 +60,11 @@ export default function HomePage() {
             </Link>
             <Link
               href="/staff/login"
-              className="rounded-xl border border-[#C9A227]/60 bg-[#FAF6F0] px-4 py-2 text-xs font-bold text-[#4A0B1E] hover:bg-[#EFE5D5] transition sm:text-sm"
+              className="rounded-xl border border-[#C9A227]/60 bg-[#FAF6F0] px-4 py-2 text-xs font-bold text-[#4A0B1E] hover:bg-[#EFE5D5] dark:bg-[#240D15] dark:text-[#E8D28A] dark:hover:bg-[#35131F] transition sm:text-sm"
             >
               Staff Portal
             </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -234,10 +236,10 @@ export default function HomePage() {
       {/* Feature Highlights */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="mb-8 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#9A7418]">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#9A7418] dark:text-[#C9A227]">
             End-to-End Hospitality Suite
           </p>
-          <h2 className="mt-1 font-serif text-3xl font-bold text-[#4A0B1E]">
+          <h2 className="mt-1 font-serif text-3xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
             Built for Seamless Table-to-Cashier Flow
           </h2>
         </div>
@@ -263,11 +265,11 @@ export default function HomePage() {
           ].map((card) => (
             <div
               key={card.title}
-              className="rounded-2xl border border-[#E3D7C5] bg-[#FFFDF9] p-5 shadow-sm"
+              className="rounded-2xl border border-[#E3D7C5] bg-[#FFFDF9] p-5 shadow-sm dark:border-[#C9A227]/25 dark:bg-[#1B0A10]"
             >
-              <CheckCircle2 className="h-6 w-6 text-[#6B132E] mb-3" />
-              <h3 className="font-serif text-lg font-bold text-[#4A0B1E]">{card.title}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#6E4F59]">{card.desc}</p>
+              <CheckCircle2 className="h-6 w-6 text-[#6B132E] dark:text-[#E8D28A] mb-3" />
+              <h3 className="font-serif text-lg font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">{card.title}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-[#6E4F59] dark:text-[#D9C7CD]">{card.desc}</p>
             </div>
           ))}
         </div>

@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   ChefHat,
   Clock,
@@ -144,32 +145,32 @@ function MenuContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] pb-28 text-[#2A0914]">
+    <div className="min-h-screen bg-[#FAF6F0] pb-28 text-[#2A0914] dark:bg-[#12060A] dark:text-[#FAF6F0] transition-colors">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-[#C9A227]/30 bg-[#FFFDF9]/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-[#C9A227]/30 bg-[#FFFDF9]/95 backdrop-blur dark:bg-[#16080D]/95 dark:border-[#C9A227]/20">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6B132E] text-[#E8D28A] shadow">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-serif text-lg font-bold text-[#4A0B1E] sm:text-xl">
+              <h1 className="font-serif text-lg font-bold text-[#4A0B1E] dark:text-[#FFFDF9] sm:text-xl">
                 Velvet Cafe &amp; Grill
               </h1>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9A7418]">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9A7418] dark:text-[#C9A227]">
                 QR Table Ordering
               </p>
             </div>
           </Link>
 
           <div className="flex items-center gap-2">
-            <label className="hidden text-xs font-semibold text-[#6B4A54] sm:inline">
+            <label className="hidden text-xs font-semibold text-[#6B4A54] dark:text-[#D9C7CD] sm:inline">
               Table:
             </label>
             <select
               value={tableNumber}
               onChange={(e) => setTableNumber(Number(e.target.value))}
-              className="rounded-xl border border-[#C9A227]/60 bg-[#FAF6F0] px-3 py-2 text-xs font-bold text-[#4A0B1E] focus:outline-none"
+              className="rounded-xl border border-[#C9A227]/60 bg-[#FAF6F0] px-3 py-2 text-xs font-bold text-[#4A0B1E] focus:outline-none dark:bg-[#240D15] dark:text-[#E8D28A]"
             >
               {Array.from({ length: 15 }, (_, idx) => idx + 1).map((t) => (
                 <option key={t} value={t}>
@@ -185,6 +186,8 @@ function MenuContent() {
               <ShoppingBag className="h-4 w-4 text-[#E8D28A]" />
               <span>{cartCount}</span>
             </button>
+
+            <ThemeToggle compact />
           </div>
         </div>
       </header>
@@ -219,7 +222,7 @@ function MenuContent() {
       </div>
 
       {/* Category Pills */}
-      <div className="sticky top-[65px] z-20 border-b border-[#E7DCCB] bg-[#FAF6F0]/95 backdrop-blur">
+      <div className="sticky top-[65px] z-20 border-b border-[#E7DCCB] bg-[#FAF6F0]/95 backdrop-blur dark:border-[#C9A227]/20 dark:bg-[#16080D]/95">
         <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3">
           {categories.map((cat) => (
             <button
@@ -228,7 +231,7 @@ function MenuContent() {
               className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition ${
                 activeCategory === cat
                   ? 'bg-[#6B132E] text-[#FFFDF9] shadow'
-                  : 'border border-[#D8CCBA] bg-white text-[#4A0B1E] hover:border-[#6B132E]'
+                  : 'border border-[#D8CCBA] bg-white text-[#4A0B1E] hover:border-[#6B132E] dark:border-[#C9A227]/30 dark:bg-[#240D15] dark:text-[#FAF6F0]'
               }`}
             >
               {cat}
@@ -257,34 +260,47 @@ function MenuContent() {
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col justify-between rounded-2xl border border-[#E3D7C5] bg-[#FFFDF9] p-5 shadow-sm hover:border-[#C9A227] hover:shadow-md transition"
+                  className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E3D7C5] bg-[#FFFDF9] shadow-sm hover:border-[#C9A227] hover:shadow-lg dark:border-[#C9A227]/25 dark:bg-[#1B0A10] transition"
                 >
                   <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="rounded-full bg-[#FAF6F0] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9A7418] border border-[#E6DAC8]">
-                        {item.category}
-                      </span>
-                      {item.tag && (
-                        <span className="rounded-full bg-[#6B132E]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#6B132E]">
-                          {item.tag}
+                    {/* Dish Photo */}
+                    <div className="relative h-48 w-full overflow-hidden bg-[#2B0611]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.imageUrl || `/menu/${item.id}.jpg`}
+                        alt={item.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20" />
+                      <div className="absolute left-3 right-3 top-3 flex items-center justify-between gap-2">
+                        <span className="rounded-full bg-[#FFFDF9]/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#6B132E] shadow">
+                          {item.category}
                         </span>
-                      )}
+                        {item.tag && (
+                          <span className="rounded-full bg-[#C9A227] px-2.5 py-0.5 text-[10px] font-bold text-[#2A0914] shadow">
+                            {item.tag}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <h3 className="mt-3 font-serif text-xl font-bold text-[#4A0B1E] leading-snug">
-                      {item.name}
-                    </h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-[#6E4F59]">
-                      {item.description}
-                    </p>
+                    <div className="p-5 pb-0">
+                      <h3 className="font-serif text-xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9] leading-snug">
+                        {item.name}
+                      </h3>
+                      <p className="mt-1.5 text-xs leading-relaxed text-[#6E4F59] dark:text-[#D9C7CD]">
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between border-t border-[#F0E7D8] pt-3.5">
+                  <div className="mx-5 mb-5 mt-5 flex items-center justify-between border-t border-[#F0E7D8] pt-3.5 dark:border-[#C9A227]/20">
                     <div>
-                      <p className="font-serif text-lg font-bold text-[#6B132E]">
+                      <p className="font-serif text-lg font-bold text-[#6B132E] dark:text-[#E8D28A]">
                         {formatPKR(item.price)}
                       </p>
-                      <p className="flex items-center gap-1 text-[10px] text-[#8B6A75]">
+                      <p className="flex items-center gap-1 text-[10px] text-[#8B6A75] dark:text-[#B99FA8]">
                         <Clock className="h-3 w-3" /> {item.prepMinutes} mins
                       </p>
                     </div>
@@ -348,8 +364,8 @@ function MenuContent() {
       {/* Slide-over Cart & Checkout Drawer */}
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-          <div className="flex h-full w-full max-w-md flex-col bg-[#FFFDF9] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#E5DAC8] bg-[#4A0B1E] px-5 py-4 text-[#FFFDF9]">
+          <div className="flex h-full w-full max-w-md flex-col bg-[#FFFDF9] shadow-2xl dark:bg-[#1B0A10] dark:text-[#FAF6F0]">
+            <div className="flex items-center justify-between border-b border-[#E5DAC8] bg-[#4A0B1E] px-5 py-4 text-[#FFFDF9] dark:border-[#C9A227]/30">
               <div>
                 <h3 className="font-serif text-xl font-bold">Your Velvet Order</h3>
                 <p className="text-xs text-[#E8D28A]">Table {tableNumber} • Velvet Cafe &amp; Grill</p>
@@ -479,10 +495,10 @@ function MenuContent() {
               </div>
 
               {cart.length > 0 && (
-                <div className="border-t border-[#E5DAC8] bg-[#FAF6F0] p-5 space-y-3">
+                <div className="border-t border-[#E5DAC8] bg-[#FAF6F0] p-5 space-y-3 dark:border-[#C9A227]/25 dark:bg-[#16080D]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#6B4A54]">Order Total</span>
-                    <span className="font-serif text-2xl font-bold text-[#6B132E]">
+                    <span className="text-sm font-semibold text-[#6B4A54] dark:text-[#D9C7CD]">Order Total</span>
+                    <span className="font-serif text-2xl font-bold text-[#6B132E] dark:text-[#E8D28A]">
                       {formatPKR(cartTotal)}
                     </span>
                   </div>

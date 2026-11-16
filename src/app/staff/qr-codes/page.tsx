@@ -53,10 +53,10 @@ export default function QrCodesStudioPage() {
       allowedRoles={['OWNER', 'CASHIER']}
     >
       {/* Controls */}
-      <div className="no-print mb-6 rounded-3xl border border-[#C9A227]/40 bg-[#FFFDF9] p-5 shadow-sm">
+      <div className="no-print mb-6 rounded-3xl border border-[#C9A227]/40 bg-[#FFFDF9] p-5 shadow-sm dark:border-[#C9A227]/30 dark:bg-[#1B0A10]">
         <form onSubmit={handleRegenerate} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-xs font-bold text-[#4A0B1E]">
+            <label className="mb-1 block text-xs font-bold text-[#4A0B1E] dark:text-[#E8D28A]">
               Live Website / Server Base URL (Auto-detected for Smartphone Scanning)
             </label>
             <input
@@ -64,9 +64,9 @@ export default function QrCodesStudioPage() {
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://your-live-domain.com"
-              className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3.5 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none"
+              className="w-full rounded-xl border border-[#D8CCBA] bg-white px-3.5 py-2.5 text-sm font-medium text-[#2A0914] focus:border-[#6B132E] focus:outline-none dark:border-[#C9A227]/30 dark:bg-[#12060A] dark:text-[#FAF6F0]"
             />
-            <p className="mt-1 text-[11px] text-[#73545E]">
+            <p className="mt-1 text-[11px] text-[#73545E] dark:text-[#D9C7CD]">
               Tip: When opened in Arena Live Preview, this auto-uses your live HTTPS preview URL so scanning with a phone opens the live menu immediately!
             </p>
           </div>
@@ -102,13 +102,13 @@ export default function QrCodesStudioPage() {
           {tables.map((card) => (
             <div
               key={card.tableNumber}
-              className="qr-print-card flex flex-col items-center rounded-3xl border-2 border-[#C9A227]/60 bg-[#FFFDF9] p-4 text-center shadow-sm"
+              className="qr-print-card flex flex-col items-center rounded-3xl border-2 border-[#C9A227]/60 bg-[#FFFDF9] p-4 text-center shadow-sm dark:bg-[#1B0A10]"
             >
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A7418]">
-                <Sparkles className="h-3 w-3 text-[#6B132E]" />
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A7418] dark:text-[#C9A227]">
+                <Sparkles className="h-3 w-3 text-[#6B132E] dark:text-[#E8D28A]" />
                 Velvet Cafe &amp; Grill
               </div>
-              <h3 className="mt-1 font-serif text-xl font-bold text-[#4A0B1E]">
+              <h3 className="mt-1 font-serif text-xl font-bold text-[#4A0B1E] dark:text-[#FFFDF9]">
                 Table {card.tableNumber}
               </h3>
 
@@ -121,8 +121,8 @@ export default function QrCodesStudioPage() {
                 />
               </div>
 
-              <p className="text-[11px] font-semibold text-[#6B132E]">Scan to Order &amp; Pay</p>
-              <p className="mt-1 w-full truncate text-[9px] font-mono text-[#73545E]" title={card.url}>
+              <p className="text-[11px] font-semibold text-[#6B132E] dark:text-[#E8D28A]">Scan to Order &amp; Pay</p>
+              <p className="mt-1 w-full truncate text-[9px] font-mono text-[#73545E] dark:text-[#D9C7CD]" title={card.url}>
                 {card.url}
               </p>
 
