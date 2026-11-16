@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 36 45% 97%;
+  --foreground: 340 35% 15%;
+  --card: 36 60% 99%;
+  --card-foreground: 340 35% 15%;
+  --primary: 340 70% 25%;
+  --primary-foreground: 36 45% 97%;
+  --secondary: 38 40% 91%;
+  --secondary-foreground: 340 45% 22%;
+  --accent: 43 68% 48%;
+  --accent-foreground: 340 50% 12%;
+  --border: 35 28% 86%;
+  --input: 35 28% 84%;
+  --ring: 340 70% 25%;
+  --font-playfair: 'Playfair Display';
+  --font-inter: 'Inter';
+}
+
+html.dark {
+  --background: 340 45% 6%;
+  --foreground: 36 40% 95%;
+  --card: 340 40% 10%;
+  --card-foreground: 36 40% 95%;
+  --secondary: 340 35% 14%;
+  --secondary-foreground: 36 40% 92%;
+  --border: 340 25% 22%;
+  --input: 340 25% 22%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, .font-serif-luxury {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+}
+
+/* Luxury Dark Mode adaptive overrides for clean contrast across all cards & inputs */
+html.dark .velvet-surface {
+  background-color: #1B0A10 !important;
+  border-color: rgba(201, 162, 39, 0.25) !important;
+  color: #FAF6F0 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  background-color: #240D15;
+  color: #FAF6F0;
+  border-color: rgba(201, 162, 39, 0.35);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #A88D96;
+}
+
+/* Custom luxury scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(107, 19, 46, 0.06);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(107, 19, 46, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 19, 46, 0.6);
+}
+
+/* 80mm Thermal POS Printer Layout */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .thermal-receipt-print {
+    display: block !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 4mm !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12px !important;
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .qr-print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .qr-print-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 2px solid #4A0B1E !important;
+  }
+}
