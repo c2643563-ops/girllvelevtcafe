@@ -423,21 +423,43 @@ export async function ensureSupabaseHydrated(): Promise<VelvetDatabase> {
         if (tablesRes.data && tablesRes.data.length > 0) {
           const tableMap = new Map<number, CafeTable>();
           for (const t of current.tables) tableMap.set(t.tableNumber, t);
+          const tablesToNormalize: CafeTable[] = [];
           for (const row of tablesRes.data) {
             const tNum = Number(row.table_number);
             const existing = tableMap.get(tNum);
-            tableMap.set(tNum, {
+            const rawStatus = (row.status as CafeTable['status']) || 'AVAILABLE';
+            // Paid tables automatically return to AVAILABLE (blank) so new orders show clearly
+            const normalizedStatus: CafeTable['status'] =
+              rawStatus === 'PAID' ? 'AVAILABLE' : rawStatus;
+            const tableObj: CafeTable = {
               tableNumber: tNum,
               label: row.label || `Table ${tNum}`,
               capacity: Number(row.capacity || existing?.capacity || 4),
-              status: (row.status as CafeTable['status']) || 'AVAILABLE',
-              activeOrderId: row.active_order_id || null,
+              status: normalizedStatus,
+              activeOrderId: rawStatus === 'PAID' ? null : row.active_order_id || null,
               lastPaymentMethod: (row.last_payment_method as PaymentMethod | null) || null,
               lastPaidAt: existing?.lastPaidAt || null,
               updatedAt: row.updated_at || new Date().toISOString(),
-            });
+            };
+            tableMap.set(tNum, tableObj);
+            if (rawStatus === 'PAID') {
+              tablesToNormalize.push(tableObj);
+            }
           }
           current.tables = Array.from(tableMap.values()).sort((a, b) => a.tableNumber - b.tableNumber);
+          if (tablesToNormalize.length > 0) {
+            await sb.from('cafe_tables').upsert(
+              tablesToNormalize.map((t) => ({
+                table_number: t.tableNumber,
+                label: t.label,
+                capacity: t.capacity,
+                status: t.status,
+                active_order_id: t.activeOrderId,
+                last_payment_method: t.lastPaymentMethod,
+                updated_at: t.updatedAt,
+              }))
+            );
+          }
         } else if (!tablesRes.error) {
           await sb.from('cafe_tables').upsert(
             current.tables.map((t) => ({
@@ -814,12 +836,19 @@ export function updateOrderStatusInDB(
   const table = db.tables.find((t) => t.tableNumber === order.tableNumber);
   if (table) {
     if (status === 'CANCELLED') {
-      table.status = 'AVAILABLE';
-      table.activeOrderId = null;
-    } else if (status === 'COMPLETED' && order.paymentStatus === 'PAID') {
-      table.status = 'PAID';
+      if (table.activeOrderId === order.id) {
+        table.status = 'AVAILABLE';
+        table.activeOrderId = null;
+      }
+    } else if (order.paymentStatus === 'PAID') {
+      // Paid orders leave the floor table blank/available for the next guest
+      if (table.activeOrderId === order.id || table.status === 'PAID') {
+        table.status = 'AVAILABLE';
+        table.activeOrderId = null;
+      }
     } else if (status === 'READY' || status === 'COMPLETED') {
-      table.status = order.paymentStatus === 'PAID' ? 'PAID' : 'BILL_PENDING';
+      table.status = 'BILL_PENDING';
+      table.activeOrderId = order.id;
     }
     table.updatedAt = now;
   }
@@ -870,12 +899,14 @@ export function completeOrderPaymentInDB(params: {
 
   const table = db.tables.find((t) => t.tableNumber === order.tableNumber);
   if (table) {
-    table.activeOrderId = order.id;
     table.lastPaymentMethod = params.method;
     if (finalPayStatus === 'PAID') {
-      table.status = 'PAID';
+      // Once paid, reset the floor table to blank/AVAILABLE so new orders stand out clearly
+      table.status = 'AVAILABLE';
+      table.activeOrderId = null;
       table.lastPaidAt = now;
     } else {
+      table.activeOrderId = order.id;
       table.status = 'BILL_PENDING';
     }
     table.updatedAt = now;
